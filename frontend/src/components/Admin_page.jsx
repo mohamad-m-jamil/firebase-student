@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { db } from "../fireBase";
-import { collection, getDocs, doc, updateDoc, deleteDoc } from "firebase/firestore";
+import { collection, getDocs, doc, updateDoc, deleteDoc, query, where } from "firebase/firestore";
+import Spinner from "../components/Spinner";    
 
 function AdminPage() {
   const [students, setStudents] = useState([]);
@@ -10,11 +11,15 @@ function AdminPage() {
 
   const fetchStudents = async () => {
     setLoading(true);
-    const querySnapshot = await getDocs(collection(db, "users"));
-    const data = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })).filter(user => user.role !== "admin");
+
+    const q = query(collection(db, "users"), where("role", "!=", "admin"));
+
+    const querySnapshot = await getDocs(q);
+    const data = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+
     setStudents(data);
     setLoading(false);
-  };
+    };
 
   useEffect(() => {
     fetchStudents();
@@ -53,11 +58,7 @@ function AdminPage() {
   };
 
   if (loading) {
-        return (
-            <div className="flex justify-center my-16">
-            <div className="w-10 h-10 border-4 border-gray-300 border-t-blue-600 rounded-full animate-spin"></div>
-            </div>
-        );
+        return <Spinner />;
     }
 
   return (

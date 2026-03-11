@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import {auth, db} from "../fireBase";
 import { doc, getDoc } from "firebase/firestore";
 import { onAuthStateChanged } from "firebase/auth";
+import Spinner from "../components/Spinner";
 
 function Student_page()
 {
@@ -28,11 +29,7 @@ function Student_page()
     }, []);
 
     if (Loading) {
-        return (
-            <div className="flex justify-center my-16">
-            <div className="w-10 h-10 border-4 border-gray-300 border-t-blue-600 rounded-full animate-spin"></div>
-            </div>
-        );
+        return <Spinner />;
     }
     return (
         <div className="min-h-screen flex flex-col items-center justify-center bg-gray-50">

@@ -3,6 +3,8 @@ import {auth, db} from "../fireBase";
 import { useNavigate } from "react-router-dom";
 import { signInWithEmailAndPassword } from "firebase/auth";
 import { doc, getDoc } from "firebase/firestore";
+import Spinner from "../components/Spinner";
+import toast from "react-hot-toast";
 
 function Login()
 {
@@ -15,7 +17,7 @@ function Login()
         setLoding(true);
         if(!email || !password)
         {
-            alert("Please fill all the fields");
+            toast.error("Please fill all the fields");
             setLoding(false);
             return;
         }
@@ -32,24 +34,20 @@ function Login()
                 }
             }
             else {
-                alert("No user data found");
+                toast.error("No user data found");
             }
            }
             catch (error) {
             console.error("Error logging in:", error);
-            alert("Error logging in: " + error.message);
+            toast.error(error.message);
             }
             finally {
                 setLoding(false);
             }
         };
         if (Loading) {
-            return (
-                <div className="flex justify-center my-16">
-                <div className="w-10 h-10 border-4 border-gray-300 border-t-blue-600 rounded-full animate-spin"></div>
-                </div>
-            );
-        }
+        return <Spinner />;
+    }
     
     return (
         <div className="min-h-screen flex items-center justify-center bg-gray-50">

@@ -3,8 +3,8 @@ import {auth, db} from "../fireBase";
 import { useNavigate } from "react-router-dom";
 import { createUserWithEmailAndPassword } from "firebase/auth";
 import { doc, setDoc } from "firebase/firestore";
-
-
+import Spinner from "../components/Spinner";
+import toast from "react-hot-toast";
 
 function Register()
 {
@@ -26,73 +26,62 @@ function Register()
         });
     }
     const [loding, setLoding] = useState(false);
-    const handleSubmit = async(e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
         setLoding(true);
 
-        const {
-            student_id,
-            first_name,
-            last_name,
-            birthday,
-            email,
-            phone_number,
-            password,
-            confirm_password
-        } = formData;
+        const { student_id, first_name, last_name, birthday, email, phone_number, password, confirm_password } = formData;
 
-        if (
-            !student_id ||
-            !first_name ||
-            !last_name ||
-            !birthday ||
-            !email ||
-            !phone_number ||
-            !password ||
-            !confirm_password
-        ) {
-            alert("Please fill all the fields");
+        if (!student_id || !first_name || !last_name || !birthday || !email || !phone_number || !password || !confirm_password) {
+            toast.error("Please fill all the fields");
             setLoding(false);
             return;
         }
-        if (formData.password !== formData.confirm_password) {
-        alert("Passwords do not match");
-        setLoding(false);
-        return;
-      }
-      
-      try {
-        const userCredential =  await createUserWithEmailAndPassword(
-            auth, email, password
-        );
-        const user = userCredential.user;
-        console.log("User registered:", user.uid);
-        await setDoc(doc(db, "users", user.uid), {
-            student_id,
-            first_name,
-            last_name,
-            birthday,
-            email,
-            phone_number,
+
+        if (password !== confirm_password) {
+            toast.error("Passwords do not match");
+            setLoding(false);
+            return;
+        }
+
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(email)) {
+            toast.error("Please enter a valid email address");
+            setLoding(false);
+            return;
+        }
+
+        const phoneRegex = /^\+?[\d\s\-()]{7,15}$/;
+        if (!phoneRegex.test(phone_number)) {
+            toast.error("Please enter a valid phone number");
+            setLoding(false);
+            return;
+        }
+
+        const passwordRegex = /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d@$!%*#?&]{8,}$/;
+        if (!passwordRegex.test(password)) {
+            toast.error("Password must be at least 8 characters and include a letter and a number");
+            setLoding(false);
+            return;
+        }
+
+        try {
+            const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+            const user = userCredential.user;
+            await setDoc(doc(db, "users", user.uid), {
+            student_id, first_name, last_name, birthday, email, phone_number,
             role: "student",
             createdAt: new Date()
-        });
-        navigate("/login");
-      }
-        catch (error) {
-        console.error("Error registering user:", error);
-        alert("Error registering user: " + error.message);
-      }
-      setLoding(false);
+            });
+            navigate("/login");
+        } catch (error) {
+            console.error("Error registering user:", error);
+            toast.error(error.message);
+        }
 
+        setLoding(false);
     };
-    if (loding) {
-        return (
-            <div className="flex justify-center my-16">
-            <div className="w-10 h-10 border-4 border-gray-300 border-t-blue-600 rounded-full animate-spin"></div>
-            </div>
-        );
-    }
+    if (loding) return <Spinner />;
     return (
         <div className="min-h-screen flex items-center justify-center bg-gray-50">
             <div className="bg-white p-8 rounded-lg shadow-sm w-full max-w-md  my-10">
